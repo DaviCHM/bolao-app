@@ -4,14 +4,17 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 
+import com.davi.poolbet.exception.ForbiddenException;
 import com.davi.poolbet.exception.MarketNotOpenException;
 import com.davi.poolbet.exception.ResourceNotFoundException;
 import com.davi.poolbet.model.Bet;
 import com.davi.poolbet.model.Market;
 import com.davi.poolbet.model.MarketStatus;
 import com.davi.poolbet.model.Side;
+import com.davi.poolbet.model.User;
 import com.davi.poolbet.repository.BetRepository;
 import com.davi.poolbet.repository.MarketRepository;
+import com.davi.poolbet.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,10 +40,52 @@ public class MarketService {
 
 	private final MarketRepository marketRepository;
 	private final BetRepository betRepository;
+	private final UserRepository userRepository;
 
-	public MarketService(MarketRepository marketRepository, BetRepository betRepository) {
+	public MarketService(MarketRepository marketRepository, BetRepository betRepository,
+			UserRepository userRepository) {
 		this.marketRepository = marketRepository;
 		this.betRepository = betRepository;
+		this.userRepository = userRepository;
+	}
+
+	/** Cria um mercado ABERTO em nome de {@code criadorId}. */
+	@Transactional
+	public Market createMarket(String pergunta, String opcaoA, String opcaoB, Long criadorId) {
+		User criador = userRepository.findById(criadorId)
+				.orElseThrow(() -> new ResourceNotFoundException("Usuario " + criadorId + " nao encontrado"));
+		return marketRepository.save(new Market(pergunta, opcaoA, opcaoB, criador));
+	}
+
+	@Transactional(readOnly = true)
+	public Market getMarket(Long marketId) {
+		return marketRepository.findById(marketId)
+				.orElseThrow(() -> new ResourceNotFoundException("Mercado " + marketId + " nao encontrado"));
+	}
+
+	/** Lista mercados, opcionalmente filtrando por status (nulo = todos). */
+	@Transactional(readOnly = true)
+	public List<Market> listMarkets(MarketStatus status) {
+		return status == null ? marketRepository.findAll() : marketRepository.findByStatus(status);
+	}
+
+	@Transactional(readOnly = true)
+	public List<Bet> betsOf(Long marketId) {
+		return betRepository.findByMarketId(marketId);
+	}
+
+	/**
+	 * Autoriza uma acao de dono do mercado (resolver/cancelar). O criador e imutavel,
+	 * entao esta checagem fora do lock e segura; a corrida de dupla resolucao continua
+	 * coberta pela guarda de status sob lock em {@link #resolveMarket}/{@link #cancelMarket}.
+	 */
+	@Transactional(readOnly = true)
+	public void assertIsCreator(Long marketId, Long requesterId) {
+		Market market = getMarket(marketId);
+		if (requesterId == null || !market.getCriador().getId().equals(requesterId)) {
+			throw new ForbiddenException(
+					"Apenas o criador do mercado " + marketId + " pode executar esta acao");
+		}
 	}
 
 	/**
