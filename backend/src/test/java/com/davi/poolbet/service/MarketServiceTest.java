@@ -20,6 +20,7 @@ import com.davi.poolbet.model.Side;
 import com.davi.poolbet.model.User;
 import com.davi.poolbet.repository.BetRepository;
 import com.davi.poolbet.repository.MarketRepository;
+import com.davi.poolbet.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,6 +43,9 @@ class MarketServiceTest {
 
 	@Mock
 	private BetRepository betRepository;
+
+	@Mock
+	private UserRepository userRepository;
 
 	@InjectMocks
 	private MarketService marketService;
