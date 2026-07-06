@@ -1,5 +1,7 @@
 package com.davi.poolbet.controller;
 
+import java.util.List;
+
 import com.davi.poolbet.dto.CreateUserRequest;
 import com.davi.poolbet.dto.UserResponse;
 import com.davi.poolbet.service.UserService;
@@ -27,6 +29,12 @@ public class UserController {
 	public ResponseEntity<UserResponse> create(@Valid @RequestBody CreateUserRequest request) {
 		UserResponse body = UserResponse.from(userService.createUser(request.nome()));
 		return ResponseEntity.status(HttpStatus.CREATED).body(body);
+	}
+
+	/** Lista todos os usuarios (ordem alfabetica). Base do seletor de usuario do frontend. */
+	@GetMapping
+	public List<UserResponse> list() {
+		return userService.listUsers().stream().map(UserResponse::from).toList();
 	}
 
 	@GetMapping("/{id}")

@@ -1,6 +1,7 @@
 package com.davi.poolbet.service;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import com.davi.poolbet.exception.DuplicateResourceException;
 import com.davi.poolbet.exception.ResourceNotFoundException;
@@ -30,6 +31,12 @@ public class UserService {
 			throw new DuplicateResourceException("Ja existe um usuario com o nome '" + nome + "'");
 		}
 		return userRepository.save(new User(nome, SALDO_INICIAL));
+	}
+
+	/** Lista todos os usuarios em ordem alfabetica (base do seletor "quem sou eu" do frontend). */
+	@Transactional(readOnly = true)
+	public List<User> listUsers() {
+		return userRepository.findAllByOrderByNomeAsc();
 	}
 
 	@Transactional(readOnly = true)
