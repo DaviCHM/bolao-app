@@ -157,6 +157,20 @@ class BettingFlowIntegrationTest {
 	}
 
 	@Test
+	void listarUsuarios_retornaTodosEmOrdemAlfabetica() throws Exception {
+		createUser("zilda-lista");
+		createUser("ana-lista");
+
+		MvcResult res = mockMvc.perform(get("/api/users"))
+				.andExpect(status().isOk())
+				.andReturn();
+
+		List<String> nomes = JsonPath.read(res.getResponse().getContentAsString(), "$[*].nome");
+		assertThat(nomes).contains("ana-lista", "zilda-lista");
+		assertThat(nomes.indexOf("ana-lista")).isLessThan(nomes.indexOf("zilda-lista"));
+	}
+
+	@Test
 	void nomeDuplicado_retorna409() throws Exception {
 		createUser("repetido");
 		mockMvc.perform(post("/api/users")

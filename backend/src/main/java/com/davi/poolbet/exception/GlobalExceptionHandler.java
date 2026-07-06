@@ -3,6 +3,9 @@ package com.davi.poolbet.exception;
 import java.util.stream.Collectors;
 
 import com.davi.poolbet.dto.ErrorResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -17,6 +20,8 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+	private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
 	@ExceptionHandler(ResourceNotFoundException.class)
 	public ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException ex) {
@@ -69,8 +74,20 @@ public class GlobalExceptionHandler {
 		return build(HttpStatus.BAD_REQUEST, "valor invalido para o parametro '" + ex.getName() + "'");
 	}
 
+	/**
+	 * Conflito de concorrencia retryavel: lock otimista do saldo do usuario (apostas
+	 * simultaneas em mercados diferentes) ou falha de aquisicao de lock/deadlock no banco.
+	 * Nada ficou inconsistente (a transacao sofreu rollback); o cliente pode tentar de novo.
+	 */
+	@ExceptionHandler(ConcurrencyFailureException.class)
+	public ResponseEntity<ErrorResponse> handleConcurrencyConflict(ConcurrencyFailureException ex) {
+		return build(HttpStatus.CONFLICT,
+				"operacao conflitou com outra em andamento; tente novamente");
+	}
+
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) {
+		log.error("Erro nao mapeado ao atender requisicao", ex);
 		return build(HttpStatus.INTERNAL_SERVER_ERROR, "erro interno inesperado");
 	}
 
