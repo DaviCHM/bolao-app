@@ -1,10 +1,10 @@
-package com.restaurant.finance;
+package com.davi.poolbet;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class FinanceApplicationTests {
+class PoolbetApplicationTests {
 
 	@Test
 	void contextLoads() {
