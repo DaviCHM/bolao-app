@@ -75,8 +75,8 @@ export default function MarketDetail({ id, currentUser, onError, onSuccess, refr
 
       <div className="detail-card" style={{ marginTop: 14 }}>
         <div className="top-row" style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span className={`chip chip-${market.status.toLowerCase()}`}>{market.status}</span>
-          <span className="chip chip-pool">Pool {money(market.pool)}</span>
+          <span className={`tag tag-${market.status.toLowerCase()}`}>{market.status}</span>
+          <span className="tag tag-pool">{money(market.pool)} em jogo</span>
         </div>
 
         <h1 className="detail-question">{market.pergunta}</h1>
@@ -84,7 +84,7 @@ export default function MarketDetail({ id, currentUser, onError, onSuccess, refr
 
         {market.status === 'FECHADO' && (
           <div className={`result-banner ${market.resultado === 'A' ? 'a' : 'b'}`}>
-            🏆 Venceu: {market.resultado === 'A' ? market.opcaoA : market.opcaoB} — o pool de{' '}
+            Venceu: {market.resultado === 'A' ? market.opcaoA : market.opcaoB} — o pool de{' '}
             {money(market.pool)} foi rateado entre os vencedores.
           </div>
         )}

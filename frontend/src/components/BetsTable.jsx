@@ -38,7 +38,7 @@ export default function BetsTable({ market, bets }) {
             return (
               <tr key={bet.id} className={won ? `winner-row ${bet.opcao === 'B' ? 'b' : ''}` : ''}>
                 <td>
-                  {bet.usuarioNome} {won && '🏆'}
+                  {bet.usuarioNome} {won && '✓'}
                 </td>
                 <td>
                   <span className={`side-tag ${bet.opcao === 'A' ? 'a' : 'b'}`}>

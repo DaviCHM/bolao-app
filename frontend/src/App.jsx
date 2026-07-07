@@ -13,7 +13,7 @@ import NewMarketModal from './components/NewMarketModal.jsx';
  */
 export default function App() {
   const route = useHashRoute();
-  const [theme, setTheme] = useStoredState('bolao.theme', 'dark');
+  const [theme, setTheme] = useStoredState('bolao.theme', 'light');
   const [currentUserId, setCurrentUserId] = useStoredState('bolao.userId', null);
   const [users, setUsers] = useState([]);
   const [modal, setModal] = useState(null); // 'user' | 'market' | null
