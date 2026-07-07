@@ -53,7 +53,6 @@ export default function MarketList({ onError, onNewMarket, canCreate }) {
         <div className="empty-state">Carregando…</div>
       ) : markets.length === 0 ? (
         <div className="empty-state">
-          <div className="big">🎲</div>
           Nenhum mercado por aqui. Crie o primeiro e chame os amigos!
         </div>
       ) : (

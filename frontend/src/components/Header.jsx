@@ -10,7 +10,6 @@ export default function Header({ users, currentUser, onSelectUser, onNewUser, th
     <header className="header">
       <div className="header-inner">
         <div className="logo" onClick={() => goTo('#/')}>
-          <span className="logo-mark">B</span>
           Bolão
         </div>
         <div className="header-spacer" />
@@ -36,15 +35,16 @@ export default function Header({ users, currentUser, onSelectUser, onNewUser, th
           ))}
         </select>
 
-        <button className="icon-btn" onClick={onNewUser} title="Criar usuário">
+        <button className="icon-btn" onClick={onNewUser} title="Criar usuário" aria-label="Criar usuário">
           +
         </button>
         <button
           className="icon-btn"
           onClick={onToggleTheme}
           title={theme === 'dark' ? 'Tema claro' : 'Tema escuro'}
+          aria-label="Alternar tema"
         >
-          {theme === 'dark' ? '☀️' : '🌙'}
+          ◐
         </button>
       </div>
     </header>

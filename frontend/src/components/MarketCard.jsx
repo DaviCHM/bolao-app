@@ -2,19 +2,19 @@ import { money, mult, prob } from '../format.js';
 import { goTo } from '../hooks.js';
 import PoolBar from './PoolBar.jsx';
 
-const STATUS_CHIP = {
-  ABERTO: ['chip-aberto', 'Aberto'],
-  FECHADO: ['chip-fechado', 'Fechado'],
-  CANCELADO: ['chip-cancelado', 'Cancelado'],
+const STATUS_TAG = {
+  ABERTO: ['tag-aberto', 'Aberto'],
+  FECHADO: ['tag-fechado', 'Fechado'],
+  CANCELADO: ['tag-cancelado', 'Cancelado'],
 };
 
 /**
  * Card da listagem. Mostra a pergunta, a barra de proporção do pool e, por lado,
  * probabilidade implícita + multiplicador ("10% · 10x"). O lado com menos dinheiro
- * recebe o chip "PAGA Nx" — deixando óbvio que o azarão paga mais.
+ * recebe a tag "PAGA Nx" — deixando óbvio que o azarão paga mais.
  */
 export default function MarketCard({ market }) {
-  const [chipClass, chipLabel] = STATUS_CHIP[market.status] ?? ['chip-fechado', market.status];
+  const [tagClass, tagLabel] = STATUS_TAG[market.status] ?? ['tag-fechado', market.status];
   const resolved = market.status === 'FECHADO';
 
   // Azarão = lado com menos dinheiro (só faz sentido com dinheiro nos dois lados).
@@ -29,13 +29,12 @@ export default function MarketCard({ market }) {
     if (resolved) classes.push(market.resultado === key ? 'winner' : 'loser');
     return (
       <div className={classes.join(' ')}>
-        {market.status === 'ABERTO' && underdog === key && (
-          <span className="underdog-chip">PAGA {mult(isA ? market.oddA : market.oddB)}</span>
-        )}
         <div className="side-name">
-          <i className="side-dot" />
-          <span>{isA ? market.opcaoA : market.opcaoB}</span>
-          {resolved && market.resultado === key && <span aria-hidden>🏆</span>}
+          <span className="option">{isA ? market.opcaoA : market.opcaoB}</span>
+          {market.status === 'ABERTO' && underdog === key && (
+            <span className="pays-tag">PAGA {mult(isA ? market.oddA : market.oddB)}</span>
+          )}
+          {resolved && market.resultado === key && <span>✓ venceu</span>}
         </div>
         <div className="side-prob">{prob(isA ? market.probA : market.probB)}</div>
         <div className="side-meta">
@@ -48,8 +47,8 @@ export default function MarketCard({ market }) {
   return (
     <article className="market-card" onClick={() => goTo(`#/market/${market.id}`)}>
       <div className="top-row">
-        <span className={`chip ${chipClass}`}>{chipLabel}</span>
-        <span className="chip chip-pool">Pool {money(market.pool)}</span>
+        <span className={`tag ${tagClass}`}>{tagLabel}</span>
+        <span className="tag tag-pool">{money(market.pool)} em jogo</span>
       </div>
       <h3 className="market-question">{market.pergunta}</h3>
       <PoolBar totalA={market.totalA} totalB={market.totalB} />
