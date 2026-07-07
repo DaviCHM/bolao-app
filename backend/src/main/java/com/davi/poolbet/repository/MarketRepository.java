@@ -13,7 +13,9 @@ import org.springframework.data.repository.query.Param;
 
 public interface MarketRepository extends JpaRepository<Market, Long> {
 
-	List<Market> findByStatus(MarketStatus status);
+	List<Market> findByGrupoId(Long grupoId);
+
+	List<Market> findByGrupoIdAndStatus(Long grupoId, MarketStatus status);
 
 	/**
 	 * Carrega o mercado adquirindo lock pessimista de escrita (SELECT ... FOR UPDATE)

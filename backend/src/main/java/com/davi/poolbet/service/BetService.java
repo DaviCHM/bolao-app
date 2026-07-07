@@ -45,14 +45,15 @@ public class BetService {
 
 	/**
 	 * Registra uma aposta de {@code userId} no lado {@code opcao} do mercado {@code marketId}.
+	 * Mercado e usuario devem pertencer ao grupo autenticado (fora dele: 404).
 	 *
 	 * @throws InvalidBetException          valor nulo, <= 0 ou com mais de 2 casas decimais
-	 * @throws ResourceNotFoundException    mercado ou usuario inexistente
+	 * @throws ResourceNotFoundException    mercado ou usuario inexistente (ou de outro grupo)
 	 * @throws MarketNotOpenException       mercado nao esta ABERTO
 	 * @throws InsufficientBalanceException saldo insuficiente
 	 */
 	@Transactional
-	public Bet placeBet(Long marketId, Long userId, Side opcao, BigDecimal valor) {
+	public Bet placeBet(Long grupoId, Long marketId, Long userId, Side opcao, BigDecimal valor) {
 		BigDecimal amount = normalizeAmount(valor);
 		if (opcao == null) {
 			throw new InvalidBetException("opcao (lado) e obrigatoria");
@@ -60,6 +61,7 @@ public class BetService {
 
 		// Lock pessimista no mercado — serializa com a resolucao.
 		Market market = marketRepository.findByIdForUpdate(marketId)
+				.filter(m -> m.getGrupo().getId().equals(grupoId))
 				.orElseThrow(() -> new ResourceNotFoundException("Mercado " + marketId + " nao encontrado"));
 		if (market.getStatus() != MarketStatus.ABERTO) {
 			throw new MarketNotOpenException(
@@ -67,6 +69,7 @@ public class BetService {
 		}
 
 		User user = userRepository.findById(userId)
+				.filter(u -> u.getGrupo().getId().equals(grupoId))
 				.orElseThrow(() -> new ResourceNotFoundException("Usuario " + userId + " nao encontrado"));
 
 		if (user.getSaldo().compareTo(amount) < 0) {

@@ -1128,6 +1128,123 @@ select {
   }
 }
 
+/* ---------- login ---------- */
+
+.login-page {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.login-title {
+  font-family: var(--font-serif);
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.login-sub {
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+.login-tabs {
+  display: inline-flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+}
+.login-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.login-card .field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.login-card .field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.login-card input {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+.login-card input:focus {
+  outline: 2px solid var(--text);
+  outline-offset: -1px;
+}
+.login-submit {
+  margin-top: 4px;
+  padding: 11px;
+}
+.login-hint {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.grupo-chip {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- mobile ---------- */
+
+@media (max-width: 640px) {
+  .header-inner {
+    height: auto;
+    flex-wrap: wrap;
+    padding: 10px 14px;
+    row-gap: 8px;
+  }
+  .main-nav {
+    margin-left: 0;
+  }
+  .grupo-chip {
+    display: none;
+  }
+  .user-select {
+    max-width: 130px;
+  }
+  .page {
+    padding: 18px 14px 60px;
+  }
+  .market-grid {
+    grid-template-columns: 1fr;
+  }
+  .detail-card {
+    padding: 16px;
+  }
+  .footer {
+    flex-direction: column;
+    gap: 4px;
+    padding: 16px 14px 24px;
+  }
+}
+
 /* ---------- skeleton (carregamento com a forma do layout) ---------- */
 
 .skeleton-card {

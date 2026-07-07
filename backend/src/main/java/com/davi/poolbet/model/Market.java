@@ -47,6 +47,11 @@ public class Market {
 	@JoinColumn(name = "criador_id", nullable = false)
 	private User criador;
 
+	/** Grupo dono do mercado (sempre o grupo do criador); base do isolamento entre grupos. */
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "grupo_id", nullable = false)
+	private Grupo grupo;
+
 	@Version
 	@Column(nullable = false)
 	private Long version;
@@ -60,6 +65,7 @@ public class Market {
 		this.opcaoA = opcaoA;
 		this.opcaoB = opcaoB;
 		this.criador = criador;
+		this.grupo = criador.getGrupo();
 		this.status = MarketStatus.ABERTO;
 	}
 
@@ -97,6 +103,10 @@ public class Market {
 
 	public User getCriador() {
 		return criador;
+	}
+
+	public Grupo getGrupo() {
+		return grupo;
 	}
 
 	public Long getVersion() {

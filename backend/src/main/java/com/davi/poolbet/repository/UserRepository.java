@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
-	boolean existsByNome(String nome);
+	boolean existsByGrupoIdAndNome(Long grupoId, String nome);
 
-	List<User> findAllByOrderByNomeAsc();
+	List<User> findByGrupoIdOrderByNomeAsc(Long grupoId);
 }

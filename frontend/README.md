@@ -17,8 +17,9 @@ não há configuração de CORS.
 
 ## Como funciona
 
-- **Usuário atual**: não há login; escolha "quem você é" no topo (persistido em
-  `localStorage`). Cada usuário novo nasce com saldo fictício de R$ 1.000.
+- **Login por grupo**: cada turma de amigos entra com nome e senha do grupo; os
+  mercados e participantes são exclusivos do grupo. Escolha "quem você é" no topo
+  (persistido em `localStorage`). Cada participante novo nasce com saldo de R$ 1.000.
 - **Lista de mercados**: cards com a barra de proporção do pool (verde = lado A,
   roxo = lado B), probabilidade implícita e multiplicador por lado. O lado com
   menos dinheiro paga mais — o chip "PAGA Nx" marca o azarão.

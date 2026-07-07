@@ -33,7 +33,7 @@ export default function Home({ currentUser, onNewMarket, onNewUser }) {
         <h1>Todo palpite vira um mercado.</h1>
         <p className="lead">
           No Bolão, uma pergunta divide os amigos em dois lados. Quem acerta divide o pool
-          inteiro, proporcional ao que apostou. Dinheiro fictício, disputa real.
+          inteiro, proporcional ao que apostou. Sem casa de apostas: vale a palavra do grupo.
         </p>
         <div className="hero-ctas">
           <button className="btn btn-primary" onClick={() => goTo('#/mercados')}>

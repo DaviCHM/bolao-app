@@ -20,8 +20,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Orquestracao transacional do ciclo de vida do mercado. A matematica do rateio vive
- * no {@link SettlementCalculator} (funcao pura); aqui ficam a transacao, o lock e a
- * contabilidade de saldo.
+ * no {@link SettlementCalculator} (funcao pura); aqui ficam a transacao, o lock, a
+ * contabilidade de saldo e o isolamento por grupo.
+ *
+ * <h2>Isolamento por grupo</h2>
+ * Toda operacao recebe o id do grupo autenticado e trata mercados de outros grupos como
+ * inexistentes (404) — nunca 403, para nao vazar a existencia do recurso.
  *
  * <h2>Contabilidade (modelo A)</h2>
  * O valor da aposta ja saiu do saldo no momento da aposta (ver camada de aposta). Na
@@ -49,24 +53,28 @@ public class MarketService {
 		this.userRepository = userRepository;
 	}
 
-	/** Cria um mercado ABERTO em nome de {@code criadorId}. */
+	/** Cria um mercado ABERTO em nome de {@code criadorId}, que deve pertencer ao grupo. */
 	@Transactional
-	public Market createMarket(String pergunta, String opcaoA, String opcaoB, Long criadorId) {
+	public Market createMarket(Long grupoId, String pergunta, String opcaoA, String opcaoB, Long criadorId) {
 		User criador = userRepository.findById(criadorId)
+				.filter(user -> user.getGrupo().getId().equals(grupoId))
 				.orElseThrow(() -> new ResourceNotFoundException("Usuario " + criadorId + " nao encontrado"));
 		return marketRepository.save(new Market(pergunta, opcaoA, opcaoB, criador));
 	}
 
 	@Transactional(readOnly = true)
-	public Market getMarket(Long marketId) {
+	public Market getMarket(Long grupoId, Long marketId) {
 		return marketRepository.findById(marketId)
+				.filter(market -> market.getGrupo().getId().equals(grupoId))
 				.orElseThrow(() -> new ResourceNotFoundException("Mercado " + marketId + " nao encontrado"));
 	}
 
-	/** Lista mercados, opcionalmente filtrando por status (nulo = todos). */
+	/** Lista os mercados do grupo, opcionalmente filtrando por status (nulo = todos). */
 	@Transactional(readOnly = true)
-	public List<Market> listMarkets(MarketStatus status) {
-		return status == null ? marketRepository.findAll() : marketRepository.findByStatus(status);
+	public List<Market> listMarkets(Long grupoId, MarketStatus status) {
+		return status == null
+				? marketRepository.findByGrupoId(grupoId)
+				: marketRepository.findByGrupoIdAndStatus(grupoId, status);
 	}
 
 	@Transactional(readOnly = true)
@@ -80,8 +88,8 @@ public class MarketService {
 	 * coberta pela guarda de status sob lock em {@link #resolveMarket}/{@link #cancelMarket}.
 	 */
 	@Transactional(readOnly = true)
-	public void assertIsCreator(Long marketId, Long requesterId) {
-		Market market = getMarket(marketId);
+	public void assertIsCreator(Long grupoId, Long marketId, Long requesterId) {
+		Market market = getMarket(grupoId, marketId);
 		if (requesterId == null || !market.getCriador().getId().equals(requesterId)) {
 			throw new ForbiddenException(
 					"Apenas o criador do mercado " + marketId + " pode executar esta acao");
@@ -92,15 +100,15 @@ public class MarketService {
 	 * Resolve o mercado com o lado vencedor e liquida os payouts numa unica transacao.
 	 * Se qualquer passo falhar, rollback total — nenhum saldo fica inconsistente.
 	 *
-	 * @throws ResourceNotFoundException mercado inexistente
+	 * @throws ResourceNotFoundException mercado inexistente (ou de outro grupo)
 	 * @throws MarketNotOpenException    mercado nao esta ABERTO (guarda contra dupla liquidacao)
 	 */
 	@Transactional
-	public Market resolveMarket(Long marketId, Side resultado) {
+	public Market resolveMarket(Long grupoId, Long marketId, Side resultado) {
 		if (resultado == null) {
 			throw new IllegalArgumentException("resultado (lado vencedor) e obrigatorio");
 		}
-		Market market = lockOpenMarket(marketId);
+		Market market = lockOpenMarket(grupoId, marketId);
 
 		List<Bet> bets = betRepository.findByMarketId(marketId);
 		SettlementCalculator.settle(bets, resultado);
@@ -115,12 +123,12 @@ public class MarketService {
 	 * Cancela (anula) o mercado: reembolsa a todos exatamente o que apostaram e nenhum
 	 * saldo liquido muda. Util quando o evento nao ocorreu.
 	 *
-	 * @throws ResourceNotFoundException mercado inexistente
+	 * @throws ResourceNotFoundException mercado inexistente (ou de outro grupo)
 	 * @throws MarketNotOpenException    mercado nao esta ABERTO
 	 */
 	@Transactional
-	public Market cancelMarket(Long marketId) {
-		Market market = lockOpenMarket(marketId);
+	public Market cancelMarket(Long grupoId, Long marketId) {
+		Market market = lockOpenMarket(grupoId, marketId);
 
 		List<Bet> bets = betRepository.findByMarketId(marketId);
 		for (Bet bet : bets) {
@@ -133,9 +141,10 @@ public class MarketService {
 		return market;
 	}
 
-	/** Carrega o mercado com lock pessimista e valida que esta ABERTO. */
-	private Market lockOpenMarket(Long marketId) {
+	/** Carrega o mercado do grupo com lock pessimista e valida que esta ABERTO. */
+	private Market lockOpenMarket(Long grupoId, Long marketId) {
 		Market market = marketRepository.findByIdForUpdate(marketId)
+				.filter(m -> m.getGrupo().getId().equals(grupoId))
 				.orElseThrow(() -> new ResourceNotFoundException("Mercado " + marketId + " nao encontrado"));
 		if (market.getStatus() != MarketStatus.ABERTO) {
 			throw new MarketNotOpenException(
