@@ -131,12 +131,15 @@ select {
   cursor: pointer;
   user-select: none;
 }
-.logo::before {
-  content: '';
-  width: 9px;
-  height: 9px;
-  border-radius: 2px;
-  background: var(--side-a);
+.logo-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+.login-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
 }
 
 .main-nav {

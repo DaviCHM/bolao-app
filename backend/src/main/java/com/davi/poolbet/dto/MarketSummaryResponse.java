@@ -13,10 +13,11 @@ import com.davi.poolbet.model.Side;
  * das apostas:
  * <ul>
  *   <li>{@code totalA/totalB/pool} — dinheiro em cada lado e o total.</li>
- *   <li>{@code oddA/oddB} — odd parimutuel efetiva de cada lado ({@code pool/total_lado});
- *       {@code null} se o lado esta vazio (divisao por zero).</li>
- *   <li>{@code probA/probB} — probabilidade implicita ({@code total_lado/pool}), no intervalo
- *       [0,1]; {@code null} se nao ha apostas.</li>
+ *   <li>{@code oddA/oddB} — multiplicador efetivo do lado com o casamento proporcional:
+ *       {@code 1 + min(totalA, totalB) / total_lado} (maximo 2x); {@code null} se o lado
+ *       esta vazio.</li>
+ *   <li>{@code probA/probB} — fatia do pool em cada lado ({@code total_lado/pool}), no
+ *       intervalo [0,1]; {@code null} se nao ha apostas.</li>
  * </ul>
  */
 public record MarketSummaryResponse(
@@ -49,6 +50,7 @@ public record MarketSummaryResponse(
 			}
 		}
 		BigDecimal pool = totalA.add(totalB);
+		BigDecimal matched = totalA.min(totalB);
 
 		return new MarketSummaryResponse(
 				market.getId(),
@@ -61,21 +63,22 @@ public record MarketSummaryResponse(
 				totalA,
 				totalB,
 				pool,
-				odd(pool, totalA),
-				odd(pool, totalB),
+				odd(matched, totalA),
+				odd(matched, totalB),
 				prob(totalA, pool),
 				prob(totalB, pool));
 	}
 
-	/** Odd efetiva do lado = pool / total_lado; null se o lado esta vazio. */
-	private static BigDecimal odd(BigDecimal pool, BigDecimal totalLado) {
+	/** Multiplicador efetivo do lado = 1 + casado/total_lado (max 2x); null se o lado esta vazio. */
+	private static BigDecimal odd(BigDecimal matched, BigDecimal totalLado) {
 		if (totalLado.signum() == 0) {
 			return null;
 		}
-		return pool.divide(totalLado, ODD_SCALE, RoundingMode.HALF_UP);
+		return BigDecimal.ONE.add(matched.divide(totalLado, ODD_SCALE, RoundingMode.HALF_UP))
+				.setScale(ODD_SCALE, RoundingMode.HALF_UP);
 	}
 
-	/** Probabilidade implicita do lado = total_lado / pool; null se nao ha apostas. */
+	/** Fatia do pool no lado = total_lado / pool; null se nao ha apostas. */
 	private static BigDecimal prob(BigDecimal totalLado, BigDecimal pool) {
 		if (pool.signum() == 0) {
 			return null;

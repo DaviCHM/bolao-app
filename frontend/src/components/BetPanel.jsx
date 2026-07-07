@@ -5,9 +5,9 @@ const QUICK = [10, 25, 50, 100];
 
 /**
  * Painel de aposta (mercado ABERTO): escolhe o lado, digita o valor e submete.
- * Mostra o retorno ESTIMADO já considerando o efeito parimutuel da própria aposta:
- * apostar v no lado X move o pool -> payout = v * (pool + v) / (totalX + v).
- * (Estimativa: apostas de outros até o fechamento mudam o rateio final.)
+ * Mostra a estimativa com o CASAMENTO proporcional já considerando a própria aposta:
+ * só entra em jogo o que o outro lado cobre (M = min dos totais); o excedente volta
+ * na resolução. (Estimativa: apostas de outros até o fechamento mudam o valor casado.)
  */
 export default function BetPanel({ market, currentUser, onPlaceBet, busy }) {
   const [side, setSide] = useState(null);
@@ -18,10 +18,11 @@ export default function BetPanel({ market, currentUser, onPlaceBet, busy }) {
 
   let estimate = null;
   if (side && validAmount) {
-    const pool = Number(market.pool) + value;
     const totalSide = Number(side === 'A' ? market.totalA : market.totalB) + value;
-    const multiplier = pool / totalSide;
-    estimate = { payout: value * multiplier, multiplier };
+    const totalOther = Number(side === 'A' ? market.totalB : market.totalA);
+    const matched = Math.min(totalSide, totalOther);
+    const emJogo = (value * matched) / totalSide; // parte da SUA aposta que é casada
+    estimate = { emJogo, devolvido: value - emJogo };
   }
 
   const sideBtn = (key) => {
@@ -98,8 +99,12 @@ export default function BetPanel({ market, currentUser, onPlaceBet, busy }) {
         Seu saldo: <strong>{money(currentUser.saldo)}</strong>
         {estimate && (
           <>
-            {' '}· Se <strong>{side === 'A' ? market.opcaoA : market.opcaoB}</strong> vencer, você
-            recebe ≈ <strong>{money(estimate.payout)}</strong> ({mult(estimate.multiplier)})
+            {' '}· Em jogo ≈ <strong>{money(estimate.emJogo)}</strong>: se{' '}
+            <strong>{side === 'A' ? market.opcaoA : market.opcaoB}</strong> vencer você lucra{' '}
+            <strong>+{money(estimate.emJogo)}</strong>; se perder, perde só isso
+            {estimate.devolvido > 0.005 && (
+              <> ({money(estimate.devolvido)} não casados voltam)</>
+            )}
           </>
         )}
       </div>

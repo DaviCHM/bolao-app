@@ -31,6 +31,7 @@ export default function Login({ onSession, onError }) {
   return (
     <main className="login-page">
       <div className="login-card">
+        <img className="login-logo" src="/logo.png" alt="Logo do Bolão" />
         <h1 className="login-title">Bolão</h1>
         <p className="login-sub">
           Apostas entre amigos: uma pergunta, dois lados, e o pool inteiro para quem acertar.

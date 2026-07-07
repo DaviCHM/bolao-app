@@ -21,6 +21,7 @@ export default function Header({
     <header className="header">
       <div className="header-inner">
         <div className="logo" onClick={() => goTo('#/')}>
+          <img className="logo-img" src="/logo.png" alt="" />
           Bolão
         </div>
         <nav className="main-nav" aria-label="Navegação principal">

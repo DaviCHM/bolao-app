@@ -5,8 +5,8 @@ import MarketCard from './MarketCard.jsx';
 
 const STEPS = [
   ['Crie a pergunta', 'Qualquer disputa vira um mercado com dois lados. Quem cria é o juiz.'],
-  ['Apostem', 'O valor sai do saldo na hora e move as odds: o lado com menos dinheiro paga mais.'],
-  ['Resolva', 'O criador aponta o vencedor e o pool inteiro é rateado entre quem acertou, ao centavo.'],
+  ['Apostem', 'Só entra em jogo o que o outro lado cobre, como no all-in do poker: o excedente volta na resolução.'],
+  ['Resolva', 'O criador aponta o vencedor: o valor casado vai para quem acertou e o excedente é devolvido, ao centavo.'],
 ];
 
 /**
@@ -32,8 +32,8 @@ export default function Home({ currentUser, onNewMarket, onNewUser }) {
       <section className="hero">
         <h1>Todo palpite vira um mercado.</h1>
         <p className="lead">
-          No Bolão, uma pergunta divide os amigos em dois lados. Quem acerta divide o pool
-          inteiro, proporcional ao que apostou. Sem casa de apostas: vale a palavra do grupo.
+          No Bolão, uma pergunta divide os amigos em dois lados. Quem acerta leva o que o outro
+          lado arriscou, proporcional à própria aposta. Sem casa de apostas: vale a palavra do grupo.
         </p>
         <div className="hero-ctas">
           <button className="btn btn-primary" onClick={() => goTo('#/mercados')}>
