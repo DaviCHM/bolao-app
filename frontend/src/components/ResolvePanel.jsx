@@ -38,7 +38,7 @@ export default function ResolvePanel({ market, onResolve, onCancel, busy }) {
 
   return (
     <div className="creator-panel">
-      <span className="title">Você criou este mercado — resolva o resultado</span>
+      <span className="title">Você criou este mercado: resolva o resultado</span>
       <div className="actions">
         <button className="btn btn-resolve-a" onClick={() => setConfirming('A')} disabled={busy}>
           {market.opcaoA} venceu
