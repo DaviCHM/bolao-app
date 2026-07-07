@@ -52,6 +52,28 @@ class SettlementCalculatorTest {
 	}
 
 	@Test
+	@DisplayName("Trade-off assumido: lucro maximo de um lado = total do outro lado")
+	void ladoDesequilibrado() {
+		// X aposta 800 em A; Y (200) e Z (100) em B. Pool = 1100.
+		Bet x = bet(Side.A, "800");
+		Bet y = bet(Side.B, "200");
+		Bet z = bet(Side.B, "100");
+
+		// A vence: X leva o pool inteiro (lucro = 300, o que o lado B arriscou).
+		List<Bet> bets = List.of(x, y, z);
+		SettlementCalculator.settle(bets, Side.A);
+		assertThat(x.getPayout()).isEqualByComparingTo("1100.00");
+		assertThat(somaPayouts(bets)).isEqualByComparingTo(pool(bets));
+
+		// B vence: X perde os 800; azaroes multiplicam ~3.67x proporcionalmente.
+		SettlementCalculator.settle(bets, Side.B);
+		assertThat(x.getPayout()).isEqualByComparingTo("0.00");
+		assertThat(y.getPayout()).isEqualByComparingTo("733.33"); // 200/300*1100
+		assertThat(z.getPayout()).isEqualByComparingTo("366.67"); // 100/300*1100 (+ resto)
+		assertThat(somaPayouts(bets)).isEqualByComparingTo(pool(bets));
+	}
+
+	@Test
 	@DisplayName("Lado vencedor vazio: reembolso total, cada um recebe o que apostou")
 	void ladoVencedorVazio() {
 		// Ninguem apostou em A; A vence -> divisao por zero -> refund.

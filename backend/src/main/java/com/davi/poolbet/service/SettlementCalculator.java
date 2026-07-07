@@ -22,6 +22,11 @@ import com.davi.poolbet.model.Side;
  * nunca armazenada. Apostar no lado com menos dinheiro paga um multiplicador maior;
  * isso e intrinseco a formula, nao ha campo de odd nem multiplicador extra.
  *
+ * <p><b>Trade-off assumido:</b> o lucro maximo de um lado e o total apostado no outro.
+ * Quem aposta muito mais que o lado oposto arrisca muito para lucrar pouco — e o preco
+ * de o azarao poder multiplicar bastante. Um modelo com perda limitada ("casamento"
+ * estilo all-in) foi avaliado e descartado por travar o retorno em no maximo 2x.</p>
+ *
  * <h2>Casos de borda</h2>
  * <ul>
  *   <li><b>Sem apostas:</b> no-op.</li>

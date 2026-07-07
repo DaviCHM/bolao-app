@@ -135,9 +135,10 @@ export default function MarketDetail({ id, currentUser, onError, onSuccess, refr
           <div className="info-card">
             <h2 className="side-panel-title">Como funciona</h2>
             <p>
-              Todo o dinheiro apostado forma o pool. Quem acerta o lado vencedor divide o pool
-              inteiro, proporcionalmente ao valor apostado. O lado com menos dinheiro paga um
-              multiplicador maior.
+              Todo o dinheiro apostado forma o pool. Quem acerta o lado vencedor divide o
+              pool inteiro, proporcionalmente ao valor apostado. O lado com menos dinheiro
+              paga um multiplicador maior — e o lucro máximo de um lado é o que o outro
+              lado apostou.
             </p>
           </div>
         </aside>

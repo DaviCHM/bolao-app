@@ -5,8 +5,8 @@ const QUICK = [10, 25, 50, 100];
 
 /**
  * Painel de aposta (mercado ABERTO): escolhe o lado, digita o valor e submete.
- * Mostra o retorno ESTIMADO já considerando o efeito parimutuel da própria aposta:
- * apostar v no lado X move o pool -> payout = v * (pool + v) / (totalX + v).
+ * Mostra lucro e risco ESTIMADOS já considerando o efeito parimutuel da própria
+ * aposta: apostar v no lado X move o pool -> payout = v * (pool + v) / (totalX + v).
  * (Estimativa: apostas de outros até o fechamento mudam o rateio final.)
  */
 export default function BetPanel({ market, currentUser, onPlaceBet, busy }) {
@@ -20,8 +20,8 @@ export default function BetPanel({ market, currentUser, onPlaceBet, busy }) {
   if (side && validAmount) {
     const pool = Number(market.pool) + value;
     const totalSide = Number(side === 'A' ? market.totalA : market.totalB) + value;
-    const multiplier = pool / totalSide;
-    estimate = { payout: value * multiplier, multiplier };
+    const payout = (value * pool) / totalSide;
+    estimate = { payout, lucro: payout - value };
   }
 
   const sideBtn = (key) => {
@@ -98,8 +98,10 @@ export default function BetPanel({ market, currentUser, onPlaceBet, busy }) {
         Seu saldo: <strong>{money(currentUser.saldo)}</strong>
         {estimate && (
           <>
-            {' '}· Se <strong>{side === 'A' ? market.opcaoA : market.opcaoB}</strong> vencer, você
-            recebe ≈ <strong>{money(estimate.payout)}</strong> ({mult(estimate.multiplier)})
+            {' '}· Se <strong>{side === 'A' ? market.opcaoA : market.opcaoB}</strong> vencer:
+            recebe ≈ <strong>{money(estimate.payout)}</strong> (lucro{' '}
+            <strong>+{money(estimate.lucro)}</strong>); se perder:{' '}
+            <strong>-{money(value)}</strong>
           </>
         )}
       </div>

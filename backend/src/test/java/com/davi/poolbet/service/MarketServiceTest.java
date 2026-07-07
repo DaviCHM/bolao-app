@@ -14,6 +14,7 @@ import java.util.Optional;
 import com.davi.poolbet.exception.MarketNotOpenException;
 import com.davi.poolbet.exception.ResourceNotFoundException;
 import com.davi.poolbet.model.Bet;
+import com.davi.poolbet.model.Grupo;
 import com.davi.poolbet.model.Market;
 import com.davi.poolbet.model.MarketStatus;
 import com.davi.poolbet.model.Side;
@@ -28,6 +29,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * Testes da orquestracao transacional: guarda de idempotencia (nao resolver duas vezes),
@@ -37,6 +39,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class MarketServiceTest {
 
 	private static final long MARKET_ID = 1L;
+	private static final long GRUPO_ID = 7L;
 
 	@Mock
 	private MarketRepository marketRepository;
@@ -50,11 +53,18 @@ class MarketServiceTest {
 	@InjectMocks
 	private MarketService marketService;
 
+	private Grupo grupo;
 	private User criador;
 
 	@BeforeEach
 	void setUp() {
-		criador = new User("criador", new BigDecimal("1000.00"));
+		grupo = new Grupo("amigos", "hash");
+		ReflectionTestUtils.setField(grupo, "id", GRUPO_ID);
+		criador = new User(grupo, "criador", new BigDecimal("1000.00"));
+	}
+
+	private User user(String nome, String saldo) {
+		return new User(grupo, nome, new BigDecimal(saldo));
 	}
 
 	private Market abertoMarket() {
@@ -69,9 +79,9 @@ class MarketServiceTest {
 	@DisplayName("resolve credita payout aos vencedores e fecha o mercado")
 	void resolveCreditaVencedores() {
 		Market market = abertoMarket();
-		User alice = new User("alice", new BigDecimal("500.00"));
-		User bob = new User("bob", new BigDecimal("500.00"));
-		User carol = new User("carol", new BigDecimal("500.00"));
+		User alice = user("alice", "500.00");
+		User bob = user("bob", "500.00");
+		User carol = user("carol", "500.00");
 		// total_A = 100, total_B = 900, pool = 1000. A vence.
 		List<Bet> bets = List.of(
 				bet(alice, Side.A, "10"),
@@ -80,7 +90,7 @@ class MarketServiceTest {
 		when(marketRepository.findByIdForUpdate(MARKET_ID)).thenReturn(Optional.of(market));
 		when(betRepository.findByMarketId(MARKET_ID)).thenReturn(bets);
 
-		marketService.resolveMarket(MARKET_ID, Side.A);
+		marketService.resolveMarket(GRUPO_ID, MARKET_ID, Side.A);
 
 		assertThat(market.getStatus()).isEqualTo(MarketStatus.FECHADO);
 		assertThat(market.getResultado()).isEqualTo(Side.A);
@@ -97,7 +107,7 @@ class MarketServiceTest {
 		market.setResultado(Side.A);
 		when(marketRepository.findByIdForUpdate(MARKET_ID)).thenReturn(Optional.of(market));
 
-		assertThatThrownBy(() -> marketService.resolveMarket(MARKET_ID, Side.B))
+		assertThatThrownBy(() -> marketService.resolveMarket(GRUPO_ID, MARKET_ID, Side.B))
 				.isInstanceOf(MarketNotOpenException.class);
 
 		// Guarda de idempotencia: nem chegou a carregar apostas (nenhum credito possivel).
@@ -110,7 +120,7 @@ class MarketServiceTest {
 	void resolverMercadoInexistente() {
 		when(marketRepository.findByIdForUpdate(MARKET_ID)).thenReturn(Optional.empty());
 
-		assertThatThrownBy(() -> marketService.resolveMarket(MARKET_ID, Side.A))
+		assertThatThrownBy(() -> marketService.resolveMarket(GRUPO_ID, MARKET_ID, Side.A))
 				.isInstanceOf(ResourceNotFoundException.class);
 	}
 
@@ -121,7 +131,7 @@ class MarketServiceTest {
 		when(marketRepository.findByIdForUpdate(MARKET_ID)).thenReturn(Optional.of(market));
 		when(betRepository.findByMarketId(MARKET_ID)).thenReturn(List.of());
 
-		marketService.resolveMarket(MARKET_ID, Side.A);
+		marketService.resolveMarket(GRUPO_ID, MARKET_ID, Side.A);
 
 		assertThat(market.getStatus()).isEqualTo(MarketStatus.FECHADO);
 		assertThat(market.getResultado()).isEqualTo(Side.A);
@@ -131,15 +141,15 @@ class MarketServiceTest {
 	@DisplayName("cancelar reembolsa todos e marca CANCELADO sem vencedor")
 	void cancelarReembolsaTodos() {
 		Market market = abertoMarket();
-		User alice = new User("alice", new BigDecimal("500.00"));
-		User bob = new User("bob", new BigDecimal("500.00"));
+		User alice = user("alice", "500.00");
+		User bob = user("bob", "500.00");
 		List<Bet> bets = List.of(
 				bet(alice, Side.A, "120"),
 				bet(bob, Side.B, "80"));
 		when(marketRepository.findByIdForUpdate(MARKET_ID)).thenReturn(Optional.of(market));
 		when(betRepository.findByMarketId(MARKET_ID)).thenReturn(bets);
 
-		marketService.cancelMarket(MARKET_ID);
+		marketService.cancelMarket(GRUPO_ID, MARKET_ID);
 
 		assertThat(market.getStatus()).isEqualTo(MarketStatus.CANCELADO);
 		assertThat(market.getResultado()).isNull();
