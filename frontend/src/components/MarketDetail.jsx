@@ -135,10 +135,10 @@ export default function MarketDetail({ id, currentUser, onError, onSuccess, refr
           <div className="info-card">
             <h2 className="side-panel-title">Como funciona</h2>
             <p>
-              Como no all-in do poker, só entra em jogo o que o outro lado cobre: casam-se
-              valores iguais dos dois lados e o excedente volta na resolução. Quem acerta
-              leva o valor casado do lado perdedor, proporcional à própria aposta. Ninguém
-              perde mais do que o adversário arriscou.
+              Todo o dinheiro apostado forma o pool. Quem acerta o lado vencedor divide o
+              pool inteiro, proporcionalmente ao valor apostado. O lado com menos dinheiro
+              paga um multiplicador maior — e o lucro máximo de um lado é o que o outro
+              lado apostou.
             </p>
           </div>
         </aside>

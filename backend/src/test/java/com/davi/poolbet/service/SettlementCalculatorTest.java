@@ -11,9 +11,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * Testes do nucleo matematico do settlement com casamento proporcional (all-in).
- * A invariante central e: <b>soma(payouts) == pool</b> ao centavo, em todo cenario
- * com vencedor; e ninguem perde mais do que o lado adversario arriscou.
+ * Testes do nucleo matematico do settlement parimutuel. A invariante central e:
+ * <b>soma(payouts) == pool</b> ao centavo, em todo cenario com vencedor.
  */
 class SettlementCalculatorTest {
 
@@ -35,44 +34,42 @@ class SettlementCalculatorTest {
 	}
 
 	@Test
-	@DisplayName("Caso base 100/900: vencedores ganham 2x (casado = 100), perdedor recebe o excedente")
+	@DisplayName("Caso base 100/900: azarao recebe 10x, favorito 9x, soma == pool")
 	void casoBase() {
-		// total_A = 100 (10 + 90), total_B = 900, pool = 1000. A vence. Casado M = 100.
-		Bet menor = bet(Side.A, "10");
-		Bet maior = bet(Side.A, "90");
+		// total_A = 100 (10 + 90), total_B = 900, pool = 1000. A vence.
+		Bet azarao = bet(Side.A, "10");
+		Bet favorito = bet(Side.A, "90");
 		Bet perdedorB = bet(Side.B, "900");
-		List<Bet> bets = List.of(menor, maior, perdedorB);
+		List<Bet> bets = List.of(azarao, favorito, perdedorB);
 
 		SettlementCalculator.settle(bets, Side.A);
 
-		assertThat(menor.getPayout()).isEqualByComparingTo("20.00");     // 10 + 10*100/100 (2x)
-		assertThat(maior.getPayout()).isEqualByComparingTo("180.00");    // 90 + 90*100/100 (2x)
-		assertThat(perdedorB.getPayout()).isEqualByComparingTo("800.00"); // 900 - casado 100
+		assertThat(azarao.getPayout()).isEqualByComparingTo("100.00");   // (10/100)*1000 = 10x
+		assertThat(favorito.getPayout()).isEqualByComparingTo("900.00"); // (90/100)*1000 = 9x
+		assertThat(perdedorB.getPayout()).isEqualByComparingTo("0.00");
 		assertThat(somaPayouts(bets)).isEqualByComparingTo("1000.00");
 		assertThat(somaPayouts(bets)).isEqualByComparingTo(pool(bets)); // invariante
 	}
 
 	@Test
-	@DisplayName("Cap estilo poker: quem aposta mais que o outro lado so arrisca o casado")
-	void capDoCasamento() {
-		// X aposta 800 em A; Y (200) e Z (100) em B. Casado M = 300.
+	@DisplayName("Trade-off assumido: lucro maximo de um lado = total do outro lado")
+	void ladoDesequilibrado() {
+		// X aposta 800 em A; Y (200) e Z (100) em B. Pool = 1100.
 		Bet x = bet(Side.A, "800");
 		Bet y = bet(Side.B, "200");
 		Bet z = bet(Side.B, "100");
 
-		// B vence: X perde apenas o casado (300), nao os 800.
+		// A vence: X leva o pool inteiro (lucro = 300, o que o lado B arriscou).
 		List<Bet> bets = List.of(x, y, z);
-		SettlementCalculator.settle(bets, Side.B);
-		assertThat(x.getPayout()).isEqualByComparingTo("500.00"); // 800 - 800*300/800
-		assertThat(y.getPayout()).isEqualByComparingTo("400.00"); // 200 + 200*300/300
-		assertThat(z.getPayout()).isEqualByComparingTo("200.00"); // 100 + 100*300/300
+		SettlementCalculator.settle(bets, Side.A);
+		assertThat(x.getPayout()).isEqualByComparingTo("1100.00");
 		assertThat(somaPayouts(bets)).isEqualByComparingTo(pool(bets));
 
-		// A vence: X lucra exatamente o que o outro lado arriscou (300).
-		SettlementCalculator.settle(bets, Side.A);
-		assertThat(x.getPayout()).isEqualByComparingTo("1100.00"); // 800 + 300
-		assertThat(y.getPayout()).isEqualByComparingTo("0.00");
-		assertThat(z.getPayout()).isEqualByComparingTo("0.00");
+		// B vence: X perde os 800; azaroes multiplicam ~3.67x proporcionalmente.
+		SettlementCalculator.settle(bets, Side.B);
+		assertThat(x.getPayout()).isEqualByComparingTo("0.00");
+		assertThat(y.getPayout()).isEqualByComparingTo("733.33"); // 200/300*1100
+		assertThat(z.getPayout()).isEqualByComparingTo("366.67"); // 100/300*1100 (+ resto)
 		assertThat(somaPayouts(bets)).isEqualByComparingTo(pool(bets));
 	}
 
@@ -94,7 +91,7 @@ class SettlementCalculatorTest {
 	@Test
 	@DisplayName("Lado perdedor vazio: multiplicador 1.0, cada um recebe seu valor de volta")
 	void ladoPerdedorVazio() {
-		// Todos apostaram em A; A vence. Casado M = 0.
+		// Todos apostaram em A; A vence. total_vencedor == pool.
 		Bet a1 = bet(Side.A, "150");
 		Bet a2 = bet(Side.A, "250");
 		List<Bet> bets = List.of(a1, a2);
@@ -116,10 +113,10 @@ class SettlementCalculatorTest {
 	@Test
 	@DisplayName("Residuo de centavos: dizima nao vaza um centavo; sobra vai ao maior resto")
 	void residuoDeCentavos() {
-		// Vencedores 10/20/30 em A (total 60), perdedor 5 em B. Casado M = 5.
-		//   10 + 10*5/60 = 10.8333.. -> floor 10.83 (resto .3333)
-		//   20 + 20*5/60 = 21.6667.. -> floor 21.66 (resto .6667)  <- maior resto
-		//   30 + 30*5/60 = 32.5000   -> floor 32.50 (resto .5000)
+		// Vencedores 10/20/30 em A (total 60), perdedor 5 em B, pool = 65.
+		//   10/60*65 = 10.8333.. -> floor 10.83 (resto .3333)
+		//   20/60*65 = 21.6667.. -> floor 21.66 (resto .6667)  <- maior resto
+		//   30/60*65 = 32.5000   -> floor 32.50 (resto .5000)
 		// soma floors = 64.99; residuo 0.01 -> vai para o de maior resto (o de 20).
 		Bet w10 = bet(Side.A, "10");
 		Bet w20 = bet(Side.A, "20");

@@ -1,6 +1,6 @@
 # bolao-app
 
-Apostas mútuas entre amigos com casamento proporcional, estilo all-in do poker: só entra em jogo o que o outro lado cobre, e o excedente volta na resolução. Sem casa de apostas. Cada grupo de amigos tem seu login; dentro dele criam mercados com pergunta binária, apostam num dos dois lados, e o criador resolve o resultado manualmente. O valor casado do lado perdedor é rateado entre os vencedores, proporcional à aposta de cada um; ninguém perde mais do que o outro lado arriscou.
+Prediction market com liquidação parimutuel (aposta mútua entre amigos, sem casa de apostas). Cada grupo de amigos tem seu login; dentro dele criam mercados com pergunta binária, apostam num dos dois lados, e o criador resolve o resultado manualmente. O pool é rateado proporcionalmente entre os vencedores.
 
 Projeto full-stack: Java Spring Boot + React + MySQL. A liquidação é feita na confiança entre os amigos do grupo: sem integração externa, sem gateway de pagamento.
 

@@ -22,7 +22,7 @@ não há configuração de CORS.
   (persistido em `localStorage`). Cada participante novo nasce com saldo de R$ 1.000.
 - **Lista de mercados**: cards com a barra de proporção do pool (verde = lado A,
   roxo = lado B), probabilidade implícita e multiplicador por lado. O lado com
-  menos dinheiro paga mais (até o teto de 2x do casamento) — o chip "PAGA Nx" marca o azarão.
+  menos dinheiro paga mais — o chip "PAGA Nx" marca o azarão.
 - **Detalhe**: apostar em um lado (com estimativa de retorno já considerando o
   efeito da própria aposta no pool), e — apenas para o criador — resolver A/B ou
   cancelar (reembolsa todos).

@@ -92,11 +92,11 @@ class BettingFlowIntegrationTest {
 		bet(token, market, bob, "A", "90");
 		bet(token, market, carol, "B", "900");
 
-		// Metricas derivadas: casado M = 100 -> odd A = 1 + 100/100 = 2x; prob A = 0.1.
+		// Metricas derivadas: odd A = 1000/100 = 10x; prob A = 0.1.
 		mockMvc.perform(get("/api/markets/" + market).header("Authorization", "Bearer " + token))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.mercado.pool").value(1000.00))
-				.andExpect(jsonPath("$.mercado.oddA").value(2.00))
+				.andExpect(jsonPath("$.mercado.oddA").value(10.00))
 				.andExpect(jsonPath("$.mercado.probA").value(0.1))
 				.andExpect(jsonPath("$.apostas.length()").value(3));
 
@@ -116,10 +116,10 @@ class BettingFlowIntegrationTest {
 		double somaPayouts = payouts.stream().mapToDouble(p -> ((Number) p).doubleValue()).sum();
 		assertThat(somaPayouts).isEqualTo(1000.00);
 
-		// Saldos: alice 1000-10+20=1010; bob 1000-90+180=1090; carol 1000-900+800=900.
-		assertThat(saldoOf(token, alice)).isEqualTo(1010.00);
-		assertThat(saldoOf(token, bob)).isEqualTo(1090.00);
-		assertThat(saldoOf(token, carol)).isEqualTo(900.00);
+		// Saldos: alice 1000-10+100=1090; bob 1000-90+900=1810; carol 1000-900+0=100.
+		assertThat(saldoOf(token, alice)).isEqualTo(1090.00);
+		assertThat(saldoOf(token, bob)).isEqualTo(1810.00);
+		assertThat(saldoOf(token, carol)).isEqualTo(100.00);
 	}
 
 	@Test

@@ -82,7 +82,7 @@ class MarketServiceTest {
 		User alice = user("alice", "500.00");
 		User bob = user("bob", "500.00");
 		User carol = user("carol", "500.00");
-		// total_A = 100, total_B = 900, casado M = 100. A vence.
+		// total_A = 100, total_B = 900, pool = 1000. A vence.
 		List<Bet> bets = List.of(
 				bet(alice, Side.A, "10"),
 				bet(bob, Side.A, "90"),
@@ -94,9 +94,9 @@ class MarketServiceTest {
 
 		assertThat(market.getStatus()).isEqualTo(MarketStatus.FECHADO);
 		assertThat(market.getResultado()).isEqualTo(Side.A);
-		assertThat(alice.getSaldo()).isEqualByComparingTo("520.00");  // 500 + 20 (2x de 10)
-		assertThat(bob.getSaldo()).isEqualByComparingTo("680.00");    // 500 + 180 (2x de 90)
-		assertThat(carol.getSaldo()).isEqualByComparingTo("1300.00"); // 500 + 800 (excedente devolvido)
+		assertThat(alice.getSaldo()).isEqualByComparingTo("600.00"); // 500 + 100
+		assertThat(bob.getSaldo()).isEqualByComparingTo("1400.00");  // 500 + 900
+		assertThat(carol.getSaldo()).isEqualByComparingTo("500.00"); // perdeu, sem credito
 	}
 
 	@Test
