@@ -52,7 +52,16 @@ export default function BetPanel({ market, currentUser, onPlaceBet, busy }) {
   };
 
   if (!currentUser) {
-    return <div className="notice">Selecione quem você é no topo da página para apostar.</div>;
+    // Sem usuário: mantém as probabilidades/odds visíveis, bloqueia só o envio.
+    return (
+      <div className="bet-form">
+        <div className="bet-sides">
+          {sideBtn('A')}
+          {sideBtn('B')}
+        </div>
+        <div className="notice">Selecione quem você é no topo da página para apostar.</div>
+      </div>
+    );
   }
 
   return (

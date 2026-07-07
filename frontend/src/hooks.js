@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 
 /**
  * Roteamento por hash, sem dependencia de router:
- *   #/            -> { view: 'list' }
+ *   #/            -> { view: 'home' }
+ *   #/mercados    -> { view: 'markets' }
  *   #/market/42   -> { view: 'market', id: 42 }
  */
 export function useHashRoute() {
@@ -18,8 +19,11 @@ export function useHashRoute() {
 }
 
 function parseHash() {
-  const match = window.location.hash.match(/^#\/market\/(\d+)/);
-  return match ? { view: 'market', id: Number(match[1]) } : { view: 'list' };
+  const hash = window.location.hash;
+  const market = hash.match(/^#\/market\/(\d+)/);
+  if (market) return { view: 'market', id: Number(market[1]) };
+  if (hash.startsWith('#/mercados')) return { view: 'markets' };
+  return { view: 'home' };
 }
 
 export const goTo = (hash) => {

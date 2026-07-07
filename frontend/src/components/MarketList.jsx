@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../api.js';
+import { money } from '../format.js';
 import MarketCard from './MarketCard.jsx';
+import { MarketGridSkeleton } from './Skeleton.jsx';
 
 const FILTERS = [
   ['ABERTO', 'Abertos'],
@@ -28,10 +30,20 @@ export default function MarketList({ onError, onNewMarket, canCreate }) {
     load();
   }, [load]);
 
+  const totalPool = markets?.reduce((acc, m) => acc + Number(m.pool), 0) ?? 0;
+
   return (
     <main className="page">
       <div className="page-head">
-        <h1 className="page-title">Mercados</h1>
+        <div>
+          <h1 className="page-title">Mercados</h1>
+          {markets && markets.length > 0 && (
+            <p className="page-subtitle">
+              {markets.length} {markets.length === 1 ? 'mercado' : 'mercados'} · {money(totalPool)}{' '}
+              em jogo
+            </p>
+          )}
+        </div>
         <div className="tabs">
           {FILTERS.map(([value, label]) => (
             <button
@@ -50,15 +62,17 @@ export default function MarketList({ onError, onNewMarket, canCreate }) {
       </div>
 
       {markets === null ? (
-        <div className="empty-state">Carregando…</div>
+        <MarketGridSkeleton />
       ) : markets.length === 0 ? (
         <div className="empty-state">
-          Nenhum mercado por aqui. Crie o primeiro e chame os amigos!
+          Nenhum mercado por aqui. Crie o primeiro e chame os amigos.
         </div>
       ) : (
         <div className="market-grid">
-          {markets.map((m) => (
-            <MarketCard key={m.id} market={m} />
+          {markets.map((m, i) => (
+            <div key={m.id} className="reveal" style={{ animationDelay: `${Math.min(i, 8) * 55}ms` }}>
+              <MarketCard market={m} />
+            </div>
           ))}
         </div>
       )}

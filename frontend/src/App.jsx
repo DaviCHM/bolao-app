@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from './api.js';
 import { goTo, useHashRoute, useStoredState } from './hooks.js';
 import Header from './components/Header.jsx';
+import Home from './components/Home.jsx';
 import MarketList from './components/MarketList.jsx';
 import MarketDetail from './components/MarketDetail.jsx';
 import NewUserModal from './components/NewUserModal.jsx';
@@ -55,7 +56,7 @@ export default function App() {
       const user = await api.createUser(nome);
       await refreshUsers();
       setCurrentUserId(user.id); // já entra "logado" como o novo usuário
-      onSuccess(`Bem-vindo(a), ${user.nome}! Saldo inicial creditado.`);
+      onSuccess(`Bem-vindo(a), ${user.nome}. Saldo inicial de R$ 1.000 creditado.`);
       return true;
     } catch (err) {
       onError(err);
@@ -66,7 +67,7 @@ export default function App() {
   const createMarket = async (data) => {
     try {
       const market = await api.createMarket({ ...data, criadorId: currentUser.id });
-      onSuccess('Mercado criado — boa sorte!');
+      onSuccess('Mercado criado. Boa sorte.');
       goTo(`#/market/${market.id}`);
       return true;
     } catch (err) {
@@ -78,6 +79,7 @@ export default function App() {
   return (
     <>
       <Header
+        route={route}
         users={users}
         currentUser={currentUser}
         onSelectUser={setCurrentUserId}
@@ -94,13 +96,26 @@ export default function App() {
           onSuccess={onSuccess}
           refreshUsers={refreshUsers}
         />
-      ) : (
+      ) : route.view === 'markets' ? (
         <MarketList
           onError={onError}
           onNewMarket={() => setModal('market')}
           canCreate={!!currentUser}
         />
+      ) : (
+        <Home
+          currentUser={currentUser}
+          onNewMarket={() => setModal('market')}
+          onNewUser={() => setModal('user')}
+        />
       )}
+
+      <footer className="footer">
+        <span>Bolão · apostas entre amigos com dinheiro fictício</span>
+        <a href="https://github.com/DaviCHM/bolao-app" target="_blank" rel="noreferrer">
+          GitHub
+        </a>
+      </footer>
 
       {modal === 'user' && <NewUserModal onClose={() => setModal(null)} onCreate={createUser} />}
       {modal === 'market' && currentUser && (
