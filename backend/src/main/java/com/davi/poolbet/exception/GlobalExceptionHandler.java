@@ -6,6 +6,7 @@ import com.davi.poolbet.dto.ErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.ConcurrencyFailureException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -88,6 +89,16 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ErrorResponse> handleConcurrencyConflict(ConcurrencyFailureException ex) {
 		return build(HttpStatus.CONFLICT,
 				"operacao conflitou com outra em andamento; tente novamente");
+	}
+
+	/**
+	 * Violacao de constraint no banco (ex.: dois cadastros simultaneos passam pela checagem
+	 * de duplicado e o segundo INSERT bate no indice unico). A transacao sofreu rollback;
+	 * o cliente pode tentar de novo.
+	 */
+	@ExceptionHandler(DataIntegrityViolationException.class)
+	public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+		return build(HttpStatus.CONFLICT, "Registro duplicado ou conflito de dados. Tente novamente.");
 	}
 
 	@ExceptionHandler(Exception.class)

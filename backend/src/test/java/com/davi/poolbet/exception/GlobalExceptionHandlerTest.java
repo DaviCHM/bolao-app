@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 
@@ -23,6 +24,17 @@ class GlobalExceptionHandlerTest {
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
 		assertThat(response.getBody().message()).contains("tente novamente");
+	}
+
+	@Test
+	@DisplayName("Violacao de constraint do banco vira 409 com mensagem generica")
+	void violacaoDeIntegridadeVira409() {
+		var response = handler.handleDataIntegrityViolation(
+				new DataIntegrityViolationException("Duplicate entry 'x' for key 'grupos.nome'"));
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+		assertThat(response.getBody().message()).doesNotContain("Duplicate entry");
+		assertThat(response.getBody().message()).contains("Tente novamente");
 	}
 
 	@Test

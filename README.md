@@ -22,6 +22,36 @@ Projeto full-stack: Java Spring Boot + React + MySQL. A liquidação é feita na
 
    Abra http://localhost:5173. Detalhes em [frontend/README.md](frontend/README.md).
 
+## Rodando com Docker
+
+O `Dockerfile` na raiz builda tudo em uma imagem só (frontend compilado + backend), e o
+`docker-compose.yml` sobe app + MySQL:
+
+1. Copie `.env.example` para `.env` e preencha `MYSQL_USER`, `MYSQL_PASSWORD` e
+   `MYSQL_ROOT_PASSWORD` (o `.env` fica fora do git).
+
+2. Suba os serviços:
+
+   ```bash
+   docker compose up --build
+   ```
+
+   Abra http://localhost:8080. O banco usa volume nomeado, então os dados sobrevivem a
+   `docker compose down` (some apenas com `down -v`).
+
+### Deploy
+
+O `Dockerfile` é auto-suficiente: qualquer plataforma que builde um Dockerfile consegue
+publicar o app sem passo extra de build. Basta injetar as variáveis de ambiente do banco:
+
+- `SPRING_DATASOURCE_URL` — para banco gerenciado com TLS, use o formato
+  `jdbc:mysql://<host>:<porta>/<database>?sslMode=REQUIRED`
+- `SPRING_DATASOURCE_USERNAME`
+- `SPRING_DATASOURCE_PASSWORD`
+
+A porta é lida da variável `PORT` automaticamente (fallback 8080). As sessões expiram
+após 30 dias (configurável via `BOLAO_SESSAO_TTL_DIAS`).
+
 ## API
 
 Base: `http://localhost:8080/api`. Fora de `/auth`, toda rota exige o header
