@@ -41,7 +41,7 @@ lado vencedor recebe o dobro do que apostou, porque `payout = valor_apostado / t
 
 ## Destaques técnicos
 
-- Settlement parimutuel com o método *largest remainder* para distribuir o residuo de
+- Settlement parimutuel com o método *largest remainder* para distribuir o resíduo de
   centavos, com invariante testada (`soma(payouts) == pool`) em
   `SettlementCalculator` — função pura, sem Spring nem banco.
 - Concorrência tratada em duas camadas: lock pessimista (`PESSIMISTIC_WRITE`) no
